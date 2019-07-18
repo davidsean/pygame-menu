@@ -33,9 +33,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # Import constants
 import pygameMenu.config_controls as _ctrl
 import pygameMenu.config_menu as _cfg
-import pygameMenu.events as _events
-import pygameMenu.fonts as _fonts
 import pygameMenu.locals as _locals
+import pygameMenu.events as _events
 
 # Library imports
 import pygameMenu.widgets as _widgets
@@ -173,7 +172,7 @@ class Menu(object):
         assert isinstance(font_color, tuple)
         assert isinstance(font_size, int)
         assert isinstance(font_size_title, int)
-        assert isinstance(font_title, (str, type(None)))
+        assert isinstance(font_title, str) or isinstance(font_title, type(None))
         assert isinstance(joystick_enabled, bool)
         assert isinstance(menu_alpha, int)
         assert isinstance(menu_color, tuple)
@@ -251,10 +250,13 @@ class Menu(object):
         self._top = None  # Top level menu
 
         # Load fonts
-        self._font = _fonts.get_font(font, self._fsize)
+        try:
+            self._font = _pygame.font.Font(font, self._fsize)
+        except Exception:
+            raise Exception('Could not load {0} font file'.format(font))
         if font_title is None:
             font_title = font
-        self._font_title = _fonts.get_font(font_title, self._fsize_title)
+        self._font_title = _pygame.font.Font(font_title, self._fsize_title)
 
         # Position of menu
         self._posx = (window_width - self._width) / 2
@@ -302,6 +304,15 @@ class Menu(object):
         """
         assert isinstance(element_name, str), 'element_name must be a string'
 
+        # Extend kwargs
+        kwargs_keys = kwargs.keys()
+        if 'align' not in kwargs_keys:
+            kwargs['align'] = ''
+
+        # Check alignment
+        if kwargs['align'] == '':
+            kwargs['align'] = self._widget_align
+
         self._size += 1
         if self._size > 1:
             dy = -self._fsize / 2 - self._opt_dy / 2
@@ -334,7 +345,7 @@ class Menu(object):
                           position=self._option_shadow_position,
                           offset=self._option_shadow_offset)
         widget.set_controls(self._joystick, self._mouse)
-        widget.set_alignment(kwargs.pop('align', self._widget_align))
+        widget.set_alignment(kwargs['align'])
 
         self._option.append(widget)
         if len(self._option) == 1:
@@ -395,6 +406,72 @@ class Menu(object):
         # Create widget
         widget = _widgets.Selector(title, values, selector_id, default,
                                    onchange, onreturn, **kwargs)
+        self._check_id_duplicated(selector_id)
+
+        # Configure widget
+        widget.set_font(self._font, self._fsize,
+                        self._font_color, self._sel_color)
+        widget.set_shadow(enabled=self._option_shadow,
+                          color=_cfg.MENU_SHADOW_COLOR,
+                          position=self._option_shadow_position,
+                          offset=self._option_shadow_offset)
+        widget.set_controls(self._joystick, self._mouse)
+        widget.set_alignment(align)
+
+        # Store widget
+        self._option.append(widget)
+        if len(self._option) == 1:
+            widget.set_selected()
+
+        return widget
+
+    def add_knob_selector(self, title, min_val, max_val, start_val, alarm_color, selector_id='', align='',
+                          onchange=None, onreturn=None, **kwargs):
+        """
+        Add a knob selector to menu: several options with values and two functions
+        that execute when changing the selector (left/right) and pressing
+        return button on the element.
+
+        Values of the knob selector are like:
+            values = [('Item1', a, b, c...), ('Item2', a, b, c..)]
+
+        And functions onchange and onreturn does
+            onchange(a, b, c..., **kwargs)
+            onreturn(a, b, c..., **kwargs)
+
+        :param title: Title of the selector
+        :type title: basestring
+        :param selector_id: ID of the selector
+        :type selector_id: basestring
+        :param default: Default value
+        :type default: float
+        :param align: Widget alignment
+        :type align: basestring
+        :param onchange: Function when changing the selector
+        :type onchange: function, NoneType
+        :param onreturn: Function when pressing return button
+        :type onreturn: function, NoneType
+        :param kwargs: Aditional parameters
+        :return: Widget object
+        :rtype: pygameMenu.widgets.selector.Selector
+        """
+        assert isinstance(min_val, float), 'min_val must be a float'
+        assert isinstance(max_val, float), 'max_val must be a float'
+        assert isinstance(start_val, float), 'start_val must be a float'
+        assert isinstance(alarm_color, tuple), 'alarm_color must be a tuple'
+        assert isinstance(selector_id, str), 'id must be a string'
+        assert isinstance(align, str), 'align must be a string'
+        if align == '':
+            align = self._widget_align
+
+        self._size += 1
+        if self._size > 1:
+            dy = -self._fsize / 2 - self._opt_dy / 2
+            self._opt_posy += dy
+
+        # Create widget
+        widget = _widgets.KnobSelector(title, min_val, max_val, start_val, alarm_color,
+                                       selector_id, onchange, onreturn, **kwargs)
         self._check_id_duplicated(selector_id)
 
         # Configure widget
@@ -580,7 +657,8 @@ class Menu(object):
             # If selected item then draw a rectangle
             if self._drawselrect and widget.selected:
                 rect = widget.get_rect()
-                _pygame.draw.rect(self._surface, self._sel_color, rect.inflate(16, 4), self._rect_width)
+                _pygame.draw.rect(self._surface, self._sel_color,
+                                  rect.inflate(16, 4), self._rect_width)
 
     def _get_option_pos(self, index):
         """
@@ -792,7 +870,8 @@ class Menu(object):
                 subdata_keys = data_submenu.keys()
                 for key in subdata_keys:
                     if key in data_keys:
-                        raise Exception('Colission between widget data ID="{0}" at depth={1}'.format(key, depth))
+                        raise Exception(
+                            'Colission between widget data ID="{0}" at depth={1}'.format(key, depth))
 
                 # Update data
                 data.update(data_submenu)
