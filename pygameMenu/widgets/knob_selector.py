@@ -118,9 +118,7 @@ class KnobSelector(Widget):
         (via a moving window buffer of "click" timestamps),
         and adjusts the step size:
         step_value = 0.1 (default);
-        step_value = 0.5 (medium);
         step_value = 1.0 (fast);
-        step_value = 5.0 (super fast)
 
         :return: Value
         :rtype: float
@@ -131,14 +129,10 @@ class KnobSelector(Widget):
             step_value = 0.1
         else:
             delta_time = (self._clicks[-1] - self._clicks[0])
-            if delta_time > 1.2:  # slow, more than 1.2 s for the last 5 clicks
+            if delta_time > 0.9:  # slow, more than 0.9 s for the last 5 clicks
                 step_value = 0.1
-            elif delta_time > 0.7:  # medium
-                step_value = 0.5
-            elif delta_time > 0.5:  # fast
+            else:
                 step_value = 1.
-            else:  # super fast
-                step_value = 5.
         return step_value
 
     def decrement(self):
