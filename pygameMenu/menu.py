@@ -71,6 +71,7 @@ class Menu(object):
                  font_size_title=_cfg.MENU_FONT_SIZE_TITLE,
                  font_title=None,
                  joystick_enabled=True,
+                 loop=True,
                  menu_alpha=_cfg.MENU_ALPHA,
                  menu_color=_cfg.MENU_BGCOLOR,
                  menu_color_title=_cfg.MENU_TITLE_BG_COLOR,
@@ -126,6 +127,8 @@ class Menu(object):
         :type font_title: basestring
         :param joystick_enabled: Enable/disable joystick on menu
         :type joystick_enabled: bool
+        :param loop: selecitons loop (False=no loops, True=loops)
+        :type loop: bool
         :param menu_alpha: Alpha of background (0=transparent, 100=opaque)
         :type menu_alpha: int
         :param menu_color: Menu color
@@ -161,7 +164,6 @@ class Menu(object):
         assert isinstance(window_height, int)
         assert isinstance(font, str)
         assert isinstance(title, str)
-
         assert isinstance(back_box, bool)
         assert isinstance(color_selected, tuple)
         assert isinstance(dopause, bool)
@@ -174,6 +176,7 @@ class Menu(object):
         assert isinstance(font_size_title, int)
         assert isinstance(font_title, str) or isinstance(font_title, type(None))
         assert isinstance(joystick_enabled, bool)
+        assert isinstance(loop, bool)
         assert isinstance(menu_alpha, int)
         assert isinstance(menu_color, tuple)
         assert isinstance(menu_color_title, tuple)
@@ -236,6 +239,7 @@ class Menu(object):
         self._width = menu_width
 
         # Inner variables
+        self._loop = loop # option to loop when selections reach top/bottom
         self._actual = self  # Actual menu
         self._closelocked = False  # Lock close until next mainloop
         self._dopause = dopause  # Pause or not
@@ -931,6 +935,12 @@ class Menu(object):
         actual = self._top._actual
         if actual._size == 0:
             return
+        if self._loop==False:
+            if index<0:
+                index =0
+            elif index>=actual._size:
+                index=actual._size-1
+
         actual._option[actual._index].set_selected(False)
         actual._index = index % actual._size
         actual._option[actual._index].set_selected()
