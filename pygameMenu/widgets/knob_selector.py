@@ -129,7 +129,7 @@ class KnobSelector(Widget):
             step_value = 0.1
         else:
             delta_time = (self._clicks[-1] - self._clicks[0])
-            if delta_time > 0.9:  # slow, more than 0.9 s for the last 5 clicks
+            if delta_time > 0.2:  # slow, more than 0.9 s for the last 5 clicks
                 step_value = 0.1
             else:
                 step_value = 1.
