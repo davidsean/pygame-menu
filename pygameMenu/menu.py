@@ -429,7 +429,7 @@ class Menu(object):
 
         return widget
 
-    def add_knob_selector(self, title, min_val, max_val, start_val, alarm_color, selector_id='', align='',
+    def add_knob_selector(self, title, min_val, max_val, start_val, incr, alarm_color, selector_id='', align='',
                           onchange=None, onreturn=None, **kwargs):
         """
         Add a knob selector to menu: several options with values and two functions
@@ -462,6 +462,7 @@ class Menu(object):
         assert isinstance(min_val, float), 'min_val must be a float'
         assert isinstance(max_val, float), 'max_val must be a float'
         assert isinstance(start_val, float), 'start_val must be a float'
+        assert isinstance(incr, float), 'incr must be a float'
         assert isinstance(alarm_color, tuple), 'alarm_color must be a tuple'
         assert isinstance(selector_id, str), 'id must be a string'
         assert isinstance(align, str), 'align must be a string'
@@ -474,7 +475,7 @@ class Menu(object):
             self._opt_posy += dy
 
         # Create widget
-        widget = _widgets.KnobSelector(title, min_val, max_val, start_val, alarm_color,
+        widget = _widgets.KnobSelector(title, min_val, max_val, start_val, incr, alarm_color,
                                        selector_id, onchange, onreturn, **kwargs)
         self._check_id_duplicated(selector_id)
 

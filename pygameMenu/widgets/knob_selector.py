@@ -47,6 +47,7 @@ class KnobSelector(Widget):
                  min_val,
                  max_val,
                  start_val,
+                 incr,
                  alarm_color=(255, 0, 0),
                  selector_id='',
                  onchange=None,
@@ -81,6 +82,7 @@ class KnobSelector(Widget):
         self._min_val = min_val
         self._max_val = max_val
         self._value = start_val
+        self._incr = incr
 
         # a list of timestamps for the 5 most recent clicks
         self._clicks = []
@@ -126,13 +128,13 @@ class KnobSelector(Widget):
         step_value = None
         # if click window is no yet fully populated
         if (len(self._clicks) < 5):
-            step_value = 0.1
+            step_value = self._incr
         else:
             delta_time = (self._clicks[-1] - self._clicks[0])
             if delta_time > 0.2:  # slow, more than 0.9 s for the last 5 clicks
-                step_value = 0.1
+                step_value = self._incr
             else:
-                step_value = 1.
+                step_value = self._incr*10
         return step_value
 
     def decrement(self):
